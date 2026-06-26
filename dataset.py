@@ -34,6 +34,7 @@ class FontSkeletonDataset(Dataset):
         skeleton_dir: str | Path,
         codepoints: Optional[List[int]] = None,
         image_size: int = 128,
+        svg_size: float = 50.0,
         num_target_points: int = 256,
         sigma: float = 2.0,
         curve_samples: int = 24,
@@ -44,6 +45,7 @@ class FontSkeletonDataset(Dataset):
         self.skeleton_dir = Path(skeleton_dir)
         self.codepoints = codepoints if codepoints is not None else list(range(33, 127))
         self.image_size = image_size
+        self.svg_size = svg_size
         self.num_target_points = num_target_points
         self.sigma = sigma
         self.curve_samples = curve_samples
@@ -55,8 +57,8 @@ class FontSkeletonDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         codepoint = int(self.codepoints[idx])
-        outline_polys = load_svg_polylines(self.outline_dir / f"{codepoint}.svg", self.curve_samples, self.image_size)
-        skeleton_polys = load_svg_polylines(self.skeleton_dir / f"{codepoint}.svg", self.curve_samples, self.image_size)
+        outline_polys = load_svg_polylines(self.outline_dir / f"{codepoint}.svg", self.curve_samples, self.image_size, self.svg_size)
+        skeleton_polys = load_svg_polylines(self.skeleton_dir / f"{codepoint}.svg", self.curve_samples, self.image_size, self.svg_size)
 
         outline_image = rasterize_outline(outline_polys, self.image_size)
         skeleton_mask = rasterize_skeleton(skeleton_polys, self.image_size, self.skeleton_line_width)

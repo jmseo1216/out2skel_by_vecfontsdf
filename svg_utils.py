@@ -155,7 +155,7 @@ def parse_svg_path(d: str, curve_samples: int = 24) -> List[Polyline]:
     return polylines
 
 
-def load_svg_polylines(svg_path: str | Path, curve_samples: int = 24, image_size: int = 128) -> List[np.ndarray]:
+def load_svg_polylines(svg_path: str | Path, curve_samples: int = 24, image_size: int = 128, svg_size: float = 50.0) -> List[np.ndarray]:
     """SVG 파일에서 path/line/polyline/polygon을 읽고 이미지 좌표 폴리라인으로 반환한다."""
     root = ET.parse(svg_path).getroot()
     polylines: List[np.ndarray] = []
@@ -163,16 +163,16 @@ def load_svg_polylines(svg_path: str | Path, curve_samples: int = 24, image_size
         tag = elem.tag.split("}")[-1]
         if tag == "path" and elem.get("d"):
             for poly in parse_svg_path(elem.get("d", ""), curve_samples):
-                polylines.append(svg_to_image_points(np.asarray(poly, dtype=np.float32), image_size=image_size))
+                polylines.append(svg_to_image_points(np.asarray(poly, dtype=np.float32), svg_size=svg_size, image_size=image_size))
         elif tag == "line":
             pts = np.array([[float(elem.get("x1", 0)), float(elem.get("y1", 0))], [float(elem.get("x2", 0)), float(elem.get("y2", 0))]], dtype=np.float32)
-            polylines.append(svg_to_image_points(pts, image_size=image_size))
+            polylines.append(svg_to_image_points(pts, svg_size=svg_size, image_size=image_size))
         elif tag in {"polyline", "polygon"} and elem.get("points"):
             nums = [float(v) for v in re.findall(r"[-+]?(?:\d*\.\d+|\d+\.?)", elem.get("points", ""))]
             pts = np.asarray(list(zip(nums[0::2], nums[1::2])), dtype=np.float32)
             if tag == "polygon" and len(pts) > 0:
                 pts = np.vstack([pts, pts[0]])
-            polylines.append(svg_to_image_points(pts, image_size=image_size))
+            polylines.append(svg_to_image_points(pts, svg_size=svg_size, image_size=image_size))
     return [p for p in polylines if len(p) >= 2]
 
 
